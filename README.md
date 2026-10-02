@@ -2,6 +2,14 @@
 
 An interactive step-by-step visualizer for Booth's multiplication algorithm using signed two's-complement binary arithmetic.
 
+## 🚀 Live Demo
+
+[▶️ Open Booth's Algorithm Visualizer](https://nithya-lekhana.github.io/booths-algorithm-visualizer/)
+
+## 🎥 Demo Video
+
+[▶️ Watch the Booth's Algorithm Visualizer Demo](demo/booths-algorithm-demo.mp4)
+
 ## Overview
 
 This project demonstrates how Booth's multiplication algorithm performs signed binary multiplication at the register level.
