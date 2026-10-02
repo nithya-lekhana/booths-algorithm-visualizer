@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Booth's Algorithm Visualizer</title>
+<style>
+:root{
+  --bg:#eef2ff;--panel:#ffffff;--panel2:#f8fafc;--text:#172033;--muted:#64748b;
+  --border:#dbe3ef;--accent:#4f46e5;--accent2:#7c3aed;--green:#059669;--amber:#d97706;
+  --red:#dc2626;--shadow:0 18px 45px rgba(30,41,59,.12);--radius:16px;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;background:linear-gradient(135deg,#eef2ff,#f8fafc 45%,#ede9fe);color:var(--text)}
+.container{width:min(1280px,calc(100% - 32px));margin:28px auto 50px}
+.hero{background:linear-gradient(135deg,#111827,#312e81);color:#fff;border-radius:22px;padding:28px 30px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.hero:after{content:"";position:absolute;width:260px;height:260px;border-radius:50%;right:-80px;top:-120px;background:rgba(255,255,255,.08)}
+.hero h1{margin:0 0 7px;font-size:clamp(25px,3vw,38px);letter-spacing:-.7px}.hero p{margin:0;color:#c7d2fe;max-width:850px}
+.panel{background:var(--panel);border:1px solid rgba(219,227,239,.9);border-radius:var(--radius);box-shadow:0 8px 25px rgba(30,41,59,.07);margin-top:18px;padding:20px}
+.controls{display:grid;grid-template-columns:1fr 1fr 170px auto auto;gap:14px;align-items:end}
+.field label{display:block;font-size:12px;font-weight:800;color:var(--muted);margin:0 0 7px;text-transform:uppercase;letter-spacing:.5px}
+input,select,button{font:inherit}input,select{width:100%;height:46px;border:1px solid #cbd5e1;border-radius:10px;background:#fff;padding:0 13px;font-weight:600;color:var(--text);outline:none}input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(79,70,229,.13)}
+button{height:46px;border:0;border-radius:10px;padding:0 17px;font-weight:800;cursor:pointer;transition:.18s transform,.18s background,.18s opacity}button:hover:not(:disabled){transform:translateY(-1px)}button:disabled{opacity:.45;cursor:not-allowed}
+.primary{background:var(--accent);color:#fff}.secondary{background:#eef2ff;color:#3730a3}.dark{background:#1e293b;color:#fff}.danger{background:#fee2e2;color:#991b1b}
+.status{margin-top:14px;min-height:22px;font-size:13px;font-weight:700}.status.error{color:var(--red)}.status.ok{color:var(--green)}
+.summary{display:grid;grid-template-columns:repeat(7,1fr);gap:12px;margin-top:18px}.stat{background:var(--panel2);border:1px solid var(--border);border-radius:12px;padding:14px;min-width:0}.stat .label{font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:900;letter-spacing:.5px}.stat .value{margin-top:7px;font-family:"SFMono-Regular",Consolas,monospace;font-weight:900;font-size:15px;word-break:break-all}.stat .value.big{font-size:17px}
+.visual{display:grid;grid-template-columns:1.45fr .8fr;gap:16px;margin-top:18px}.section-title{font-size:15px;font-weight:900;margin:0 0 12px}.register-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.reg{border:1px solid var(--border);border-radius:13px;padding:14px;background:#fbfdff}.reg-head{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:9px}.reg-name{font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.5px}.reg-dec{font-size:12px;color:var(--muted);font-weight:700}.bits{font-family:"SFMono-Regular",Consolas,monospace;font-size:clamp(13px,1.8vw,19px);font-weight:900;letter-spacing:1.2px;overflow:auto;white-space:nowrap;padding:10px 8px;background:#0f172a;color:#e2e8f0;border-radius:9px}.bits .sign{color:#a5b4fc}.current{display:flex;flex-direction:column;gap:11px}.decision{border-radius:13px;padding:16px;border:1px solid var(--border);background:var(--panel2)}.pair{font-family:Consolas,monospace;font-size:31px;font-weight:950;color:var(--accent)}.op{font-size:17px;font-weight:900;margin-top:3px}.reason{font-size:12px;color:var(--muted);margin-top:4px}.mini-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.mini{padding:12px;border:1px solid var(--border);border-radius:11px;background:#fff}.mini b{display:block;font-size:11px;color:var(--muted);text-transform:uppercase}.mini span{font-family:Consolas,monospace;font-weight:900;font-size:18px;display:block;margin-top:4px}.legend{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.legend div{border:1px solid var(--border);border-radius:9px;padding:8px;font-family:Consolas,monospace;text-align:center;font-weight:900;font-size:13px}.legend div:nth-child(1){background:#ecfdf5;color:#047857}.legend div:nth-child(2){background:#fef2f2;color:#b91c1c}.legend div:nth-child(3),.legend div:nth-child(4){background:#f8fafc;color:#475569}
+.actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:14px}.progress{height:8px;background:#e2e8f0;border-radius:99px;overflow:hidden;margin-top:14px}.progress span{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));width:0%;transition:width .2s}
+.table-wrap{margin-top:18px;border:1px solid var(--border);border-radius:13px;overflow:auto}.table-head{padding:14px 15px;background:#0f172a;color:#fff;display:flex;justify-content:space-between;align-items:center;gap:12px}.table-head h2{margin:0;font-size:15px}.table-head small{color:#cbd5e1}.table{width:100%;min-width:1100px;border-collapse:collapse;font-family:Consolas,"SFMono-Regular",monospace;font-size:12px}.table th{position:sticky;top:0;background:#172033;color:#fff;padding:10px;text-align:left;z-index:1}.table td{padding:10px;border-bottom:1px solid var(--border);vertical-align:top}.table tr:nth-child(even){background:#f8fafc}.table tr.active{background:#eef2ff!important;box-shadow:inset 4px 0 var(--accent)}.table .opcell{font-family:Inter,system-ui,sans-serif;font-weight:800}.tag{display:inline-block;padding:4px 7px;border-radius:7px;font-family:Inter,system-ui,sans-serif;font-weight:900;font-size:11px}.tag.add{background:#dcfce7;color:#166534}.tag.sub{background:#fee2e2;color:#991b1b}.tag.none{background:#e2e8f0;color:#475569}.tag.shift{background:#ede9fe;color:#5b21b6}.phase{font-family:Inter,system-ui,sans-serif;color:var(--muted);font-weight:800}
+.explain{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px}.explain-card{background:var(--panel2);border:1px solid var(--border);border-radius:13px;padding:16px}.explain-card h3{margin:0 0 8px;font-size:14px}.explain-card p,.explain-card li{font-size:13px;color:#475569;line-height:1.55}.formula{font-family:Consolas,monospace;background:#0f172a;color:#e2e8f0;border-radius:9px;padding:12px;overflow:auto}
+.footer-note{font-size:12px;color:var(--muted);margin-top:14px}
+@media(max-width:980px){.controls{grid-template-columns:1fr 1fr}.summary{grid-template-columns:repeat(4,1fr)}.visual{grid-template-columns:1fr}.explain{grid-template-columns:1fr}}
+@media(max-width:600px){.container{width:min(100% - 18px,1280px);margin-top:10px}.hero{padding:22px}.panel{padding:14px}.controls{grid-template-columns:1fr}.summary{grid-template-columns:1fr 1fr}.register-grid{grid-template-columns:1fr}.legend{grid-template-columns:1fr 1fr}.actions button{flex:1 1 42%}}
+</style>
+</head>
+<body>
+<div class="container">
+  <header class="hero">
+    <h1>Booth's Algorithm Visualizer</h1>
+    <p>Correct two's-complement signed multiplication with register-level execution, Q₀/Q₋₁ decision tracking, arithmetic right shifts, and step-by-step playback.</p>
+  </header>
+
+  <section class="panel">
+    <form id="controlForm" class="controls">
+      <div class="field"><label for="mVal">Multiplicand (M)</label><input id="mVal" inputmode="numeric" value="1234" aria-label="Multiplicand"></div>
+      <div class="field"><label for="qVal">Multiplier (Q)</label><input id="qVal" inputmode="numeric" value="-5678" aria-label="Multiplier"></div>
+      <div class="field"><label for="bitWidth">Register width (N)</label><select id="bitWidth"><option value="auto">Auto-detect</option><option value="4">4 bits</option><option value="5">5 bits</option><option value="8">8 bits</option><option value="12">12 bits</option><option value="14">14 bits</option><option value="16">16 bits</option><option value="24">24 bits</option><option value="32">32 bits</option></select></div>
+      <button class="primary" id="runBtn" type="submit">Run Simulation</button>
+      <button class="secondary" id="resetBtn" type="button">Reset</button>
+    </form>
+    <div id="status" class="status" aria-live="polite"></div>
+  </section>
+
+  <section class="summary" aria-label="Register summary">
+    <div class="stat"><div class="label">Active Bits (N)</div><div class="value big" id="dispN">—</div></div>
+    <div class="stat"><div class="label">M</div><div class="value" id="dispM">—</div></div>
+    <div class="stat"><div class="label">−M</div><div class="value" id="dispNegM">—</div></div>
+    <div class="stat"><div class="label">A</div><div class="value" id="dispA">—</div></div>
+    <div class="stat"><div class="label">Q</div><div class="value" id="dispQ">—</div></div>
+    <div class="stat"><div class="label">Q−1</div><div class="value big" id="dispQ1">—</div></div>
+    <div class="stat"><div class="label">Final Product</div><div class="value big" id="dispProd">—</div></div>
+  </section>
+
+  <section class="visual">
+    <div class="panel" style="margin-top:0">
+      <h2 class="section-title">Live Registers</h2>
+      <div class="register-grid">
+        <div class="reg"><div class="reg-head"><span class="reg-name">Accumulator A</span><span class="reg-dec" id="aDec">decimal: —</span></div><div class="bits" id="aBits">—</div></div>
+        <div class="reg"><div class="reg-head"><span class="reg-name">Multiplier Q</span><span class="reg-dec" id="qDec">decimal: —</span></div><div class="bits" id="qBits">—</div></div>
+        <div class="reg"><div class="reg-head"><span class="reg-name">Multiplicand M</span><span class="reg-dec" id="mDec">decimal: —</span></div><div class="bits" id="mBits">—</div></div>
+        <div class="reg"><div class="reg-head"><span class="reg-name">Q−1</span><span class="reg-dec">one-bit flip-flop</span></div><div class="bits" id="q1Bits">—</div></div>
+      </div>
+    </div>
+
+    <div class="panel current" style="margin-top:0">
+      <h2 class="section-title">Current Decision</h2>
+      <div class="decision"><div style="font-size:11px;font-weight:900;color:var(--muted);text-transform:uppercase">Q₀ Q−1 Pair</div><div class="pair" id="pair">—</div><div class="op" id="op">Run a simulation</div><div class="reason" id="reason">The pair determines whether A is changed before the arithmetic right shift.</div></div>
+      <div class="mini-row"><div class="mini"><b>Iteration</b><span id="iteration">0 / 0</span></div><div class="mini"><b>Count</b><span id="count">—</span></div></div>
+      <div class="legend"><div>01 → A + M</div><div>10 → A − M</div><div>00 → No-op</div><div>11 → No-op</div></div>
+      <div class="progress"><span id="progressBar"></span></div>
+      <div class="actions">
+        <button class="secondary" id="firstBtn" type="button">First</button>
+        <button class="secondary" id="prevBtn" type="button">Previous</button>
+        <button class="primary" id="nextBtn" type="button">Next Step</button>
+        <button class="dark" id="autoBtn" type="button">Auto Play</button>
+        <button class="danger" id="stopBtn" type="button">Stop</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="table-wrap">
+    <div class="table-head"><h2>Execution Trace</h2><small>Each row is one complete Booth iteration</small></div>
+    <table class="table">
+      <thead><tr><th>Step</th><th>Q₀Q−1</th><th>Operation</th><th>A before</th><th>A after operation</th><th>A after ARS</th><th>Q after ARS</th><th>Q−1</th><th>Count</th></tr></thead>
+      <tbody id="traceBody"><tr><td colspan="9" style="text-align:center;color:#64748b;padding:24px">Enter M and Q, then click Run Simulation.</td></tr></tbody>
+    </table>
+  </section>
+
+  <section class="explain">
+    <div class="explain-card"><h3>Why the calculation is correct</h3><p>All register arithmetic is performed modulo 2<sup>N</sup> using exact JavaScript <b>BigInt</b> operations. Signed values are interpreted with N-bit two's complement. The combined final register <b>A‖Q</b> is then interpreted as a signed 2N-bit two's-complement integer.</p><div class="formula">01 → A = A + M
+10 → A = A − M
+00 or 11 → A unchanged
+Then: arithmetic right shift of A‖Q‖Q−1</div></div>
+    <div class="explain-card"><h3>Register-width rule</h3><p>Auto-detect chooses the smallest width of at least 4 bits that can represent M, −M, and Q as signed two's-complement values. The extra check for −M prevents overflow in the subtraction step when M is the most-negative value for a width. A manually selected width is accepted only when M, −M, and Q fit its signed range.</p><p class="footer-note">Example: 14 bits represent −8192 through +8191, so M = 1234 and Q = −5678 are valid.</p></div>
+  </section>
+</div>
+
+<script>
+(() => {
+  'use strict';
+
+  const $ = id => document.getElementById(id);
+  const form = $('controlForm');
+  const mInput = $('mVal'), qInput = $('qVal'), widthInput = $('bitWidth');
+  let sim = null;
+  let cursor = 0;
+  let timer = null;
+
+  function parseInteger(value, label) {
+    const s = value.trim();
+    if (!/^[+-]?\d+$/.test(s)) throw new Error(`${label} must be a whole number.`);
+    return BigInt(s);
+  }
+
+  function widthFor(a, b) {
+    for (let n = 4; n <= 32; n++) {
+      const min = -(1n << BigInt(n - 1));
+      const max = (1n << BigInt(n - 1)) - 1n;
+      if (a >= min && a <= max && -a >= min && -a <= max && b >= min && b <= max) return n;
+    }
+    throw new Error('Values are outside the supported 32-bit register range.');
+  }
+
+  function signedRange(n) {
+    return { min: -(1n << BigInt(n - 1)), max: (1n << BigInt(n - 1)) - 1n };
+  }
+
+  function toBits(value, n) {
+    const mask = (1n << BigInt(n)) - 1n;
+    return value & mask;
+  }
+
+  function signedFromBits(bits, n) {
+    const sign = 1n << BigInt(n - 1);
+    const full = 1n << BigInt(n);
+    return (bits & sign) !== 0n ? bits - full : bits;
+  }
+
+  function bitsString(bits, n) {
+    return toBits(bits, n).toString(2).padStart(n, '0');
+  }
+
+  function formatNumber(v) {
+    return v.toLocaleString('en-IN');
+  }
+
+  function setStatus(msg, type='') {
+    $('status').textContent = msg;
+    $('status').className = `status ${type}`;
+  }
+
+  function buildSimulation(m, q, n) {
+    const mask = (1n << BigInt(n)) - 1n;
+    const mBits = toBits(m, n);
+    const negMBits = toBits(-m, n);
+    let A = 0n;
+    let Q = toBits(q, n);
+    let Q1 = 0n;
+    let count = n;
+    const steps = [];
+
+    for (let i = 1; i <= n; i++) {
+      const q0 = Q & 1n;
+      const pair = `${q0.toString()}${Q1.toString()}`;
+      const aBefore = A;
+      let operation;
+      let operationType;
+
+      if (pair === '01') {
+        A = (A + mBits) & mask;
+        operation = 'A = A + M';
+        operationType = 'add';
+      } else if (pair === '10') {
+        A = (A + negMBits) & mask;
+        operation = 'A = A − M';
+        operationType = 'sub';
+      } else {
+        operation = 'No arithmetic operation';
+        operationType = 'none';
+      }
+
+      const aAfterOperation = A;
+      const oldQ0 = Q & 1n;
+      const sign = (A >> BigInt(n - 1)) & 1n;
+      const lsbA = A & 1n;
+
+      // Arithmetic right shift of the concatenated A | Q register.
+      A = ((A >> 1n) | (sign << BigInt(n - 1))) & mask;
+      Q = ((Q >> 1n) | (lsbA << BigInt(n - 1))) & mask;
+      Q1 = oldQ0;
+      count--;
+
+      steps.push({
+        i, pair, operation, operationType,
+        aBefore, aAfterOperation, aAfterShift: A, qAfterShift: Q,
+        q1AfterShift: Q1, count
+      });
+    }
+
+    const finalBits = (A << BigInt(n)) | Q;
+    const product = signedFromBits(finalBits, 2 * n);
+    const expected = m * q;
+    if (product !== expected) throw new Error(`Internal verification failed: expected ${expected}, got ${product}.`);
+
+    return { m, q, n, mask, mBits, negMBits, steps, finalA: A, finalQ: Q, finalQ1: Q1, product, expected };
+  }
+
+  function renderRegisters(a, q, q1) {
+    $('aBits').textContent = bitsString(a, sim.n);
+    $('qBits').textContent = bitsString(q, sim.n);
+    $('mBits').textContent = bitsString(sim.mBits, sim.n);
+    $('q1Bits').textContent = q1.toString();
+    $('aDec').textContent = `decimal: ${formatNumber(signedFromBits(a, sim.n))}`;
+    $('qDec').textContent = `decimal: ${formatNumber(signedFromBits(q, sim.n))}`;
+    $('mDec').textContent = `decimal: ${formatNumber(sim.m)}`;
+  }
+
+  function operationTag(type, operation) {
+    const cls = type === 'add' ? 'add' : type === 'sub' ? 'sub' : 'none';
+    return `<span class="tag ${cls}">${operation}</span>`;
+  }
+
+  function renderTable() {
+    const body = $('traceBody');
+    if (!sim) return;
+    body.innerHTML = sim.steps.map(s => `
+      <tr data-step="${s.i}" class="${s.i === cursor ? 'active' : ''}">
+        <td><b>${s.i}</b></td>
+        <td><b>${s.pair}</b></td>
+        <td class="opcell">${operationTag(s.operationType, s.operation)}</td>
+        <td>${bitsString(s.aBefore, sim.n)}</td>
+        <td>${bitsString(s.aAfterOperation, sim.n)}</td>
+        <td>${bitsString(s.aAfterShift, sim.n)}</td>
+        <td>${bitsString(s.qAfterShift, sim.n)}</td>
+        <td>${s.q1AfterShift}</td>
+        <td>${s.count}</td>
+      </tr>`).join('');
+
+    const active = body.querySelector(`tr[data-step="${cursor}"]`);
+    if (active) active.scrollIntoView({ block:'nearest', inline:'nearest' });
+  }
+
+  function renderState() {
+    if (!sim) return;
+    $('dispN').textContent = sim.n;
+    $('dispM').textContent = bitsString(sim.mBits, sim.n);
+    $('dispNegM').textContent = bitsString(sim.negMBits, sim.n);
+
+    if (cursor === 0) {
+      renderRegisters(0n, toBits(sim.q, sim.n), 0n);
+      $('pair').textContent = '—';
+      $('op').textContent = 'Initialization';
+      $('reason').textContent = 'A starts at 0, Q contains the multiplier, and Q−1 starts at 0.';
+      $('iteration').textContent = `0 / ${sim.n}`;
+      $('count').textContent = sim.n;
+      $('dispA').textContent = bitsString(0n, sim.n);
+      $('dispQ').textContent = bitsString(toBits(sim.q, sim.n), sim.n);
+      $('dispQ1').textContent = '0';
+      $('progressBar').style.width = '0%';
+    } else if (cursor <= sim.steps.length) {
+      const s = sim.steps[cursor - 1];
+      renderRegisters(s.aAfterShift, s.qAfterShift, s.q1AfterShift);
+      $('pair').textContent = s.pair;
+      $('op').textContent = s.operation;
+      $('reason').textContent = s.pair === '01' ? '01 means add M to A.' : s.pair === '10' ? '10 means subtract M from A.' : `${s.pair} means no arithmetic operation.`;
+      $('iteration').textContent = `${s.i} / ${sim.n}`;
+      $('count').textContent = s.count;
+      $('dispA').textContent = bitsString(s.aAfterShift, sim.n);
+      $('dispQ').textContent = bitsString(s.qAfterShift, sim.n);
+      $('dispQ1').textContent = s.q1AfterShift.toString();
+      $('progressBar').style.width = `${(cursor / sim.n) * 100}%`;
+    }
+
+    const done = cursor === sim.n;
+    $('firstBtn').disabled = !sim || cursor === 0;
+    $('prevBtn').disabled = !sim || cursor === 0;
+    $('nextBtn').disabled = !sim || done;
+    $('autoBtn').disabled = !sim || done;
+    $('stopBtn').disabled = !timer;
+
+    if (done) {
+      $('dispA').textContent = bitsString(sim.finalA, sim.n);
+      $('dispQ').textContent = bitsString(sim.finalQ, sim.n);
+      $('dispQ1').textContent = sim.finalQ1.toString();
+      $('op').textContent = `Complete — Product = ${formatNumber(sim.product)}`;
+      $('reason').textContent = `A‖Q is interpreted as a signed ${2 * sim.n}-bit two's-complement value.`;
+      $('pair').textContent = 'DONE';
+      setStatus(`Verified: ${formatNumber(sim.m)} × ${formatNumber(sim.q)} = ${formatNumber(sim.product)}.`, 'ok');
+    }
+    renderTable();
+  }
+
+  function run() {
+    stopAuto();
+    try {
+      const m = parseInteger(mInput.value, 'M');
+      const q = parseInteger(qInput.value, 'Q');
+      let n;
+      if (widthInput.value === 'auto') n = widthFor(m, q);
+      else n = Number(widthInput.value);
+      if (!Number.isInteger(n) || n < 4 || n > 32) throw new Error('Register width must be between 4 and 32 bits.');
+      const {min,max} = signedRange(n);
+      if (m < min || m > max) throw new Error(`M = ${m} does not fit in signed ${n}-bit two's complement (${min} to ${max}).`);
+      if (-m < min || -m > max) throw new Error(`−M = ${-m} does not fit in signed ${n}-bit two's complement (${min} to ${max}). Choose a wider register.`);
+      if (q < min || q > max) throw new Error(`Q = ${q} does not fit in signed ${n}-bit two's complement (${min} to ${max}).`);
+      sim = buildSimulation(m, q, n);
+      cursor = 0;
+      $('dispProd').textContent = `${formatNumber(sim.product)}  (${bitsString(sim.finalA, n)} ${bitsString(sim.finalQ, n)})`;
+      setStatus(`Ready. ${n} iterations will be executed.`, 'ok');
+      renderState();
+    } catch (err) {
+      sim = null; cursor = 0;
+      setStatus(err.message, 'error');
+      $('traceBody').innerHTML = `<tr><td colspan="9" style="text-align:center;color:#dc2626;padding:24px">${err.message}</td></tr>`;
+    }
+  }
+
+  function stopAuto() { if (timer) clearInterval(timer); timer = null; if (sim) renderState(); }
+  function next() { if (!sim || cursor >= sim.n) return; cursor++; renderState(); }
+  function first() { if (!sim) return; stopAuto(); cursor = 0; renderState(); }
+  function prev() { if (!sim || cursor <= 0) return; stopAuto(); cursor--; renderState(); }
+  function autoPlay() {
+    if (!sim || cursor >= sim.n || timer) return;
+    timer = setInterval(() => { if (cursor >= sim.n) { stopAuto(); return; } cursor++; renderState(); }, 900);
+    renderState();
+  }
+
+  form.addEventListener('submit', e => { e.preventDefault(); run(); });
+  $('resetBtn').addEventListener('click', () => { stopAuto(); mInput.value='1234'; qInput.value='-5678'; widthInput.value='auto'; sim=null; cursor=0; setStatus('Enter values and click Run Simulation.'); $('dispN').textContent='—'; $('dispM').textContent='—'; $('dispNegM').textContent='—'; $('dispA').textContent='—'; $('dispQ').textContent='—'; $('dispQ1').textContent='—'; $('dispProd').textContent='—'; $('traceBody').innerHTML='<tr><td colspan="9" style="text-align:center;color:#64748b;padding:24px">Enter M and Q, then click Run Simulation.</td></tr>'; renderEmpty(); });
+  $('nextBtn').addEventListener('click', next); $('firstBtn').addEventListener('click', first); $('prevBtn').addEventListener('click', prev); $('autoBtn').addEventListener('click', autoPlay); $('stopBtn').addEventListener('click', stopAuto);
+
+  function renderEmpty(){ ['aBits','qBits','mBits','q1Bits'].forEach(id => $(id).textContent='—'); ['aDec','qDec','mDec'].forEach(id => $(id).textContent='decimal: —'); $('pair').textContent='—'; $('op').textContent='Run a simulation'; $('reason').textContent='The pair determines whether A is changed before the arithmetic right shift.'; $('iteration').textContent='0 / 0'; $('count').textContent='—'; $('progressBar').style.width='0%'; }
+  renderEmpty();
+  run();
+})();
+</script>
+</body>
+</html>
